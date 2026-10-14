@@ -24,6 +24,12 @@ npm run preview   # sert dist/ pour vérifier la version finale
 
 ## Mettre en ligne
 
+**Site en ligne : https://mermernoa.github.io/projet-kebab/**
+
+Le workflow `.github/workflows/pages.yml` publie le site sur GitHub Pages à chaque push sur `main` ou sur la
+branche de travail `claude/tender-dijkstra-7xrlxt`. À activer une seule fois dans
+**Settings → Pages → Build and deployment → Source : GitHub Actions**.
+
 Le dossier `dist/` est un site statique : il se dépose tel quel sur Netlify, Vercel, OVH, o2switch,
 GitHub Pages, etc. (les chemins sont relatifs, il fonctionne aussi dans un sous-dossier).
 
