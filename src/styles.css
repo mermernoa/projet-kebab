@@ -433,6 +433,12 @@ a {
 /* ------------------------------------------------------------------
    Cartes « sticker »
    ------------------------------------------------------------------ */
+/* une carte effacée redevient visible si le clavier y entre */
+.stop__pin > :focus-within {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
 .card {
   width: min(430px, 36vw);
   padding: 28px 30px 30px;
@@ -715,7 +721,8 @@ a {
   }
 }
 
-@media (max-width: 760px) {
+/* téléphones + tablettes en portrait : cartes en bas, brochette horizontale */
+@media (max-width: 760px), (max-aspect-ratio: 4/5) and (max-width: 1100px) {
   body {
     font-size: 1rem;
   }

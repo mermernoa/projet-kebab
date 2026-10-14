@@ -21,7 +21,7 @@ import { clamp, lerp } from './three/util.js';
 const root = document.documentElement;
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const coarse = matchMedia('(pointer: coarse)').matches;
-const narrowMQ = matchMedia('(max-width: 760px)');
+const narrowMQ = matchMedia('(max-width: 760px), (max-aspect-ratio: 4/5) and (max-width: 1100px)');
 
 document.querySelectorAll('[data-year]').forEach((el) => (el.textContent = new Date().getFullYear()));
 
@@ -106,6 +106,8 @@ async function boot() {
   const pose = { pos: new THREE.Vector3(), target: new THREE.Vector3(), fov: 45, side: 0, fit: 1 };
   const look = new THREE.Vector3();
   const offset = new THREE.Vector3();
+  const right = new THREE.Vector3();
+  const up = new THREE.Vector3();
   const mouse = { x: 0, y: 0, sx: 0, sy: 0 };
   let W = 0;
   let H = 0;
@@ -156,8 +158,8 @@ async function boot() {
     look.copy(pose.target);
     camera.lookAt(look);
     if (mouse.sx || mouse.sy) {
-      const right = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 0);
-      const up = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 1);
+      right.setFromMatrixColumn(camera.matrix, 0);
+      up.setFromMatrixColumn(camera.matrix, 1);
       look.addScaledVector(right, mouse.sx * 0.22).addScaledVector(up, -mouse.sy * 0.12);
       camera.lookAt(look);
     }
@@ -168,20 +170,21 @@ async function boot() {
 
   /* --- cartes --- */
   const last = cards.map(() => ({ o: -1, t: '' }));
+  const tilts = cards.map((el) => el?.style.getPropertyValue('--tilt') || '0deg');
   function updateCards(y) {
     const states = timeline.cardStates(y);
     states.forEach(({ inP, outP }, i) => {
       const el = cards[i];
       if (!el) return;
       const o = Math.round(inP * (1 - outP) * 1000) / 1000;
-      const isHero = i === 0;
-      const tilt = el.style.getPropertyValue('--tilt') || getComputedStyle(el).getPropertyValue('--tilt') || '0deg';
-      const t = isHero
-        ? `translateY(${(-outP * 40).toFixed(1)}px)`
-        : `rotate(calc(${tilt} + ${((1 - inP) * -6).toFixed(2)}deg)) scale(${(0.94 + 0.06 * inP).toFixed(3)})`;
+      const t =
+        i === 0
+          ? `translateY(${(-outP * 40).toFixed(1)}px)`
+          : `rotate(calc(${tilts[i]} + ${((1 - inP) * -6).toFixed(2)}deg)) scale(${(0.94 + 0.06 * inP).toFixed(3)})`;
       if (last[i].o !== o) {
+        // reste dans l'arbre d'accessibilité, mais ne capte plus les clics une fois effacée
         el.style.opacity = o;
-        el.style.visibility = o < 0.01 ? 'hidden' : 'visible';
+        el.style.pointerEvents = o < 0.05 ? 'none' : '';
         last[i].o = o;
       }
       if (!reduced && last[i].t !== t) {
