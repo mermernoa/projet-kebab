@@ -18,19 +18,6 @@ export const smoothstep = (e0, e1, x) => {
   const t = clamp((x - e0) / (e1 - e0));
   return t * t * (3 - 2 * t);
 };
-export const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
-
-const matCache = new Map();
-/** Matériau standard mis en cache (les objets identiques partagent leur matériau, donc se fusionnent). */
-export function mat(color, opts = {}) {
-  const key = color + JSON.stringify(opts, (k, v) => (v && v.isTexture ? v.uuid : v && v.isColor ? v.getHexString() : v));
-  let m = matCache.get(key);
-  if (!m) {
-    m = new THREE.MeshStandardMaterial({ color, roughness: 0.72, metalness: 0, ...opts });
-    matCache.set(key, m);
-  }
-  return m;
-}
 
 export function place(obj, { p, r, s } = {}) {
   if (p) obj.position.set(p[0], p[1], p[2]);
@@ -48,9 +35,30 @@ export function mesh(geo, material, opts = {}) {
   return m;
 }
 
+/** UV d'une BoxGeometry exprimées en mètres (la texture garde son échelle réelle). */
+export function worldUV(geo, w, h, d, unit = 1) {
+  const uv = geo.attributes.uv;
+  const dims = [
+    [d, h],
+    [d, h],
+    [w, d],
+    [w, d],
+    [w, h],
+    [w, h],
+  ];
+  for (let f = 0; f < 6; f++)
+    for (let k = 0; k < 4; k++) {
+      const i = f * 4 + k;
+      uv.setXY(i, (uv.getX(i) * dims[f][0]) / unit, (uv.getY(i) * dims[f][1]) / unit);
+    }
+  return geo;
+}
+
 /** Boîte définie par ses bornes (plus lisible pour l'architecture). */
 export function boxBetween(x0, x1, y0, y1, z0, z1, material, opts = {}) {
-  const g = new THREE.BoxGeometry(Math.abs(x1 - x0), Math.abs(y1 - y0), Math.abs(z1 - z0));
+  const [w, h, d] = [Math.abs(x1 - x0), Math.abs(y1 - y0), Math.abs(z1 - z0)];
+  const g = new THREE.BoxGeometry(w, h, d);
+  if (opts.uvUnit) worldUV(g, w, h, d, opts.uvUnit);
   return mesh(g, material, { ...opts, p: [(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2] });
 }
 
@@ -126,20 +134,6 @@ export function puffyProfile(R, T, steps = 9, dome = 0) {
   }
   pts.push(new THREE.Vector2(0.0001, T / 2 + dome));
   return pts;
-}
-
-/** Copie gonflée le long des normales, en face arrière : contour blanc façon sticker. */
-export function stickerOutline(geo, width = 0.02, color = '#ffffff') {
-  const g = geo.clone();
-  const pos = g.attributes.position;
-  const nrm = g.attributes.normal;
-  for (let i = 0; i < pos.count; i++) {
-    pos.setXYZ(i, pos.getX(i) + nrm.getX(i) * width, pos.getY(i) + nrm.getY(i) * width, pos.getZ(i) + nrm.getZ(i) * width);
-  }
-  const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color, side: THREE.BackSide }));
-  m.castShadow = false;
-  m.receiveShadow = false;
-  return m;
 }
 
 /** InstancedMesh rempli par un callback (position/rotation/échelle par instance). */

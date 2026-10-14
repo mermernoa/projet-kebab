@@ -2,8 +2,6 @@
 import '@fontsource/poppins/latin-400.css';
 import '@fontsource/poppins/latin-500.css';
 import '@fontsource/poppins/latin-600.css';
-import '@fontsource/poppins/latin-700.css';
-import '@fontsource/lilita-one/latin-400.css';
 import '@fontsource/anton/latin-400.css';
 import '@fontsource/permanent-marker/latin-400.css';
 import '@fontsource/sacramento/latin-400.css';
@@ -13,252 +11,280 @@ import './styles.css';
 import * as THREE from 'three';
 import Lenis from 'lenis';
 import logoUrl from './assets/logo.webp';
-import { createWorld } from './three/world.js';
-import { STOPS, STOPS_PORTRAIT, poseBetween } from './tour/path.js';
-import { createScrollTimeline } from './tour/scroll.js';
-import { clamp, lerp } from './three/util.js';
+import { loadEnvironments } from './world/env.js';
+import { loadModels } from './world/models.js';
+import { buildStorefront } from './world/street.js';
+import { buildInterior } from './world/interior.js';
+import { createPost } from './world/post.js';
+import { setAnisotropy, plaster } from './world/pbr.js';
+import { setPaintAnisotropy } from './world/paint.js';
+import { clamp, lerp, smoothstep } from './world/util.js';
+import { buildRig } from './tour/path.js';
 
 const root = document.documentElement;
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const coarse = matchMedia('(pointer: coarse)').matches;
-const narrowMQ = matchMedia('(max-width: 760px), (max-aspect-ratio: 4/5) and (max-width: 1100px)');
+const mobile = coarse || Math.min(screen.width, screen.height) < 700;
+const noDamp = new URLSearchParams(location.search).has('nodamp'); // captures de test
 
 document.querySelectorAll('[data-year]').forEach((el) => (el.textContent = new Date().getFullYear()));
 
 /* ------------------------------------------------------------------
-   Loader
+   Chargement (compteur en pourcentage)
    ------------------------------------------------------------------ */
-const bars = [...document.querySelectorAll('.loader__bar i')];
-let step = 0;
-const tick = () => bars[step++]?.classList.add('on');
+const pctEl = document.querySelector('.loader__pct');
+let shown = 0;
+let target = 0;
+const progress = (p) => (target = Math.max(target, p));
+(function countUp() {
+  shown += (target - shown) * 0.12;
+  if (pctEl) pctEl.textContent = String(Math.round(shown)).padStart(2, '0');
+  if (!root.classList.contains('is-ready')) requestAnimationFrame(countUp);
+})();
 const ready = () => {
-  bars.forEach((b) => b.classList.add('on'));
-  setTimeout(() => root.classList.add('is-ready'), reduced ? 0 : 250);
+  target = 100;
+  setTimeout(() => root.classList.add('is-ready'), reduced ? 0 : 450);
 };
 
 /* ------------------------------------------------------------------
-   Sections & timeline
+   Scroll
    ------------------------------------------------------------------ */
-const sections = [...document.querySelectorAll('.stop')];
-sections.forEach((s) => s.style.setProperty('--len', s.dataset.len || 200));
-const stopIndexById = Object.fromEntries(STOPS.map((s, i) => [s.id, i]));
-const stopsFor = (list) => sections.map((s) => list[stopIndexById[s.dataset.stop]]);
-let sectionStops = stopsFor(STOPS);
-const timeline = createScrollTimeline(sections);
-const cards = sections.map((s) => s.querySelector('.stop__pin > *'));
+const lenis = reduced ? null : new Lenis({ lerp: 0.09, wheelMultiplier: 0.85, anchors: true });
+const tour = document.getElementById('tour');
 const infos = document.getElementById('infos');
-const navLinks = [...document.querySelectorAll('.skewer a')];
-const skewerNav = document.querySelector('.skewer');
-const navOrder = navLinks.map((a) => sections.findIndex((s) => s.id === a.dataset.target));
-
-let lenis = null;
-if (!reduced) {
-  lenis = new Lenis({ lerp: 0.085, wheelMultiplier: 0.9, anchors: true });
-}
+const caps = [...document.querySelectorAll('.cap')];
 const scrollY = () => (lenis ? lenis.scroll : window.scrollY);
 
-/* ------------------------------------------------------------------
-   Rendu 3D
-   ------------------------------------------------------------------ */
 async function boot() {
   const canvas = document.getElementById('scene');
   let renderer;
   try {
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', stencil: false, depth: true });
   } catch (err) {
     console.warn('WebGL indisponible, affichage statique.', err);
     root.classList.add('no-webgl');
     ready();
     return;
   }
-  tick();
-
-  const quality = {
-    dpr: Math.min(window.devicePixelRatio || 1, coarse ? 1.5 : 1.75),
-    shadowSize: coarse ? 1024 : 2048,
-  };
-  renderer.setPixelRatio(quality.dpr);
-  renderer.toneMapping = THREE.NeutralToneMapping;
-  renderer.toneMappingExposure = 1.0;
+  let dpr = Math.min(window.devicePixelRatio || 1, mobile ? 1.4 : 1.6);
+  renderer.setPixelRatio(dpr);
+  renderer.toneMapping = THREE.NoToneMapping; // fait par le post-traitement (AgX)
+  renderer.toneMappingExposure = 1.15;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
+  setAnisotropy(Math.min(8, renderer.capabilities.getMaxAnisotropy()));
+  setPaintAnisotropy(Math.min(8, renderer.capabilities.getMaxAnisotropy()));
+  progress(5);
 
   // polices des textures peintes + logo
-  const logoImg = new Image();
-  logoImg.src = logoUrl;
+  const logo = new Image();
+  logo.src = logoUrl;
   await Promise.all([
-    logoImg.decode(),
-    ...[
-      '40px "Permanent Marker"',
-      '40px "Lilita One"',
-      '40px "Anton"',
-      '600 20px "Poppins"',
-      '700 20px "Poppins"',
-      '40px "Sacramento"',
-    ].map((f) => document.fonts.load(f)),
+    logo.decode(),
+    ...['40px "Permanent Marker"', '40px "Anton"', '500 20px "Poppins"', '600 20px "Poppins"', '40px "Sacramento"'].map((f) =>
+      document.fonts.load(f),
+    ),
   ]).catch((e) => console.warn(e));
-  tick();
+  progress(12);
 
-  const world = createWorld(renderer, { logoImg, quality });
-  tick();
+  const loaded = { env: 0, models: 0 };
+  const onEnv = (e) => e.total && ((loaded.env = e.loaded / e.total), progress(12 + loaded.env * 45 + loaded.models * 25));
+  const onModels = (e) =>
+    e.total && ((loaded.models = Math.max(loaded.models, e.loaded / e.total)), progress(12 + loaded.env * 45 + loaded.models * 25));
+  const [envs, models] = await Promise.all([
+    loadEnvironments(renderer, { mobile, onProgress: onEnv }),
+    loadModels(onModels).catch((e) => (console.warn(e), null)),
+  ]);
+  progress(85);
 
-  const camera = new THREE.PerspectiveCamera(45, 1, 0.05, 220);
-  const pose = { pos: new THREE.Vector3(), target: new THREE.Vector3(), fov: 45, side: 0, fit: 1 };
-  const look = new THREE.Vector3();
-  const offset = new THREE.Vector3();
-  const right = new THREE.Vector3();
-  const up = new THREE.Vector3();
-  const mouse = { x: 0, y: 0, sx: 0, sy: 0 };
+  /* --- scène --- */
+  const scene = new THREE.Scene();
+  scene.add(envs.sky);
+  scene.environment = envs.streetEnv;
+
+  const glass = mobile
+    ? new THREE.MeshStandardMaterial({
+        color: '#d8e4e8',
+        roughness: 0.03,
+        metalness: 0,
+        transparent: true,
+        opacity: 0.14,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      })
+    : new THREE.MeshPhysicalMaterial({
+        color: '#ffffff',
+        roughness: 0.02,
+        metalness: 0,
+        transmission: 1,
+        thickness: 0.01,
+        ior: 1.5,
+        side: THREE.DoubleSide,
+      });
+
+  // enduit beige, comme les façades de la ruelle
+  const stone = new THREE.MeshStandardMaterial({ color: '#cbbb9e', ...plaster([1, 1]), roughness: 0.92 });
+
+  const store = buildStorefront({ logo, glass, stone });
+  const inside = buildInterior({ glass, models, mobile });
+  scene.add(store.group, inside.group);
+  // à l'intérieur, les reflets viennent du café ; dehors, de la rue
+  inside.group.traverse((o) => {
+    if (!o.isMesh) return;
+    for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
+      if (!m || !('envMap' in m) || m.envMap || m === glass) continue;
+      m.envMap = envs.cafeEnv;
+      m.envMapIntensity = (m.metalness ?? 0) > 0.5 ? 1.1 : Math.min(m.envMapIntensity ?? 1, 0.55);
+    }
+  });
+
+  const camera = new THREE.PerspectiveCamera(55, 1, 0.03, 120);
+  const post = createPost(renderer, scene, camera, { mobile });
+  progress(92);
+
+  /* --- cadrage --- */
   let W = 0;
   let H = 0;
+  let rig = buildRig(false);
+  let tourTop = 0;
+  let tourLen = 1;
   let infosTop = Infinity;
-
-  function resize(force = false) {
+  function measure() {
+    tourTop = tour.getBoundingClientRect().top + window.scrollY;
+    tourLen = Math.max(1, tour.offsetHeight - window.innerHeight);
+    infosTop = infos.getBoundingClientRect().top + window.scrollY;
+  }
+  function resize(force) {
     const w = window.innerWidth;
     const h = window.innerHeight;
     // sur mobile, la barre d'adresse fait varier la hauteur : on ignore les petits écarts
-    if (!force && coarse && w === W && Math.abs(h - H) < 160) {
-      timeline.measure();
-      infosTop = infos.getBoundingClientRect().top + window.scrollY;
-      return;
-    }
+    if (!force && coarse && w === W && Math.abs(h - H) < 160) return measure();
     W = w;
     H = h;
     renderer.setSize(W, H, false);
+    post.setSize(W, H);
     camera.aspect = W / H;
-    sectionStops = stopsFor(W / H < 0.8 ? STOPS_PORTRAIT : STOPS);
-    timeline.measure();
-    infosTop = infos.getBoundingClientRect().top + window.scrollY;
+    rig = buildRig(W / H < 0.8);
+    measure();
   }
   resize(true);
-  window.addEventListener('resize', () => resize());
+  window.addEventListener('resize', () => resize(false));
   document.fonts.ready.then(() => resize(true));
 
-  if (!coarse && !reduced) {
+  const mouse = { x: 0, y: 0, sx: 0, sy: 0 };
+  if (!coarse && !reduced)
     window.addEventListener('pointermove', (e) => {
       mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
       mouse.y = (e.clientY / window.innerHeight) * 2 - 1;
     });
-  }
 
-  /** Cadre la caméra : recul et focale sur écran vertical, décalage du sujet à côté de la carte. */
-  function frame() {
-    const aspect = W / H;
-    const narrow = narrowMQ.matches;
-    const aspectFix = clamp(1.3 / aspect, 1, 2.2);
-    const wide = clamp((aspectFix - 1) / 1.0);
-    camera.fov = Math.min(72, pose.fov * lerp(1, 1.32, wide));
-    const pull = 1 + (aspectFix - 1) * 0.5 * pose.fit;
-    offset.subVectors(pose.pos, pose.target).multiplyScalar(pull);
-    camera.position.copy(pose.target).add(offset);
-
-    // parallaxe souris
-    mouse.sx = lerp(mouse.sx, mouse.x, 0.05);
-    mouse.sy = lerp(mouse.sy, mouse.y, 0.05);
-    look.copy(pose.target);
-    camera.lookAt(look);
-    if (mouse.sx || mouse.sy) {
-      right.setFromMatrixColumn(camera.matrix, 0);
-      up.setFromMatrixColumn(camera.matrix, 1);
-      look.addScaledVector(right, mouse.sx * 0.22).addScaledVector(up, -mouse.sy * 0.12);
-      camera.lookAt(look);
-    }
-
-    if (narrow) camera.setViewOffset(W, H, 0, H * 0.17, W, H);
-    else camera.setViewOffset(W, H, pose.side * W * 0.15, 0, W, H);
-  }
-
-  /* --- cartes --- */
-  const last = cards.map(() => ({ o: -1, t: '' }));
-  const tilts = cards.map((el) => el?.style.getPropertyValue('--tilt') || '0deg');
-  function updateCards(y) {
-    const states = timeline.cardStates(y);
-    states.forEach(({ inP, outP }, i) => {
-      const el = cards[i];
-      if (!el) return;
-      const o = Math.round(inP * (1 - outP) * 1000) / 1000;
-      const t =
-        i === 0
-          ? `translateY(${(-outP * 40).toFixed(1)}px)`
-          : `rotate(calc(${tilts[i]} + ${((1 - inP) * -6).toFixed(2)}deg)) scale(${(0.94 + 0.06 * inP).toFixed(3)})`;
-      if (last[i].o !== o) {
-        // reste dans l'arbre d'accessibilité, mais ne capte plus les clics une fois effacée
-        el.style.opacity = o;
-        el.style.pointerEvents = o < 0.05 ? 'none' : '';
-        last[i].o = o;
-      }
-      if (!reduced && last[i].t !== t) {
-        el.style.transform = t;
-        last[i].t = t;
-      }
-    });
-  }
-
-  /* --- brochette de progression --- */
-  let lastActive = -2;
-  function updateNav(activeSection, y) {
-    skewerNav.classList.toggle('is-hidden', activeSection === 0 || y > infosTop - H * 0.6);
-    if (activeSection === lastActive) return;
-    lastActive = activeSection;
-    navLinks.forEach((a, k) => {
-      const idx = navOrder[k];
-      a.classList.toggle('is-active', idx === activeSection || (k === navLinks.length - 1 && activeSection > idx));
-      a.classList.toggle('is-done', idx < activeSection);
-      if (idx === activeSection) a.setAttribute('aria-current', 'step');
-      else a.removeAttribute('aria-current');
+  /* --- légendes --- */
+  const capKeys = caps.map((c) => +c.dataset.key);
+  const last = caps.map(() => -1);
+  function updateCaptions(p) {
+    caps.forEach((el, i) => {
+      const d = p - capKeys[i];
+      let o;
+      if (capKeys[i] === 0) o = 1 - smoothstep(0.08, 0.4, p);
+      else if (capKeys[i] === rig.count - 1) o = smoothstep(-0.45, -0.1, d);
+      else o = smoothstep(-0.42, -0.12, d) * (1 - smoothstep(0.18, 0.42, d));
+      const r = Math.round(o * 100) / 100;
+      if (r === last[i]) return;
+      last[i] = r;
+      el.style.opacity = r;
+      el.style.transform = reduced ? '' : `translate3d(0, ${((1 - r) * 18).toFixed(1)}px, 0)`;
+      el.style.pointerEvents = r > 0.5 ? 'auto' : 'none';
     });
   }
 
   /* --- boucle --- */
-  const state = { time: 0, dt: 0, heroT: 0, camera, station: -1, reduced };
+  const pose = { pos: new THREE.Vector3(), target: new THREE.Vector3(), fov: 55 };
+  const look = new THREE.Vector3();
+  const right = new THREE.Vector3();
+  const up = new THREE.Vector3();
   const clock = new THREE.Timer();
+  let p = 0;
   let first = true;
+  // qualité adaptative : si les images ralentissent, on baisse la résolution pour rester fluide
+  let frames = 0;
+  let avg = 16;
+  function adapt(dt) {
+    if (noDamp || ++frames < 45) return;
+    avg += (dt * 1000 - avg) * 0.05;
+    if (frames % 60 === 0 && avg > 26 && dpr > 0.8) {
+      dpr = Math.max(0.8, dpr - 0.2);
+      renderer.setPixelRatio(dpr);
+      renderer.setSize(W, H, false);
+      post.setSize(W, H);
+      avg = 16;
+    }
+  }
 
   function loop(now) {
     requestAnimationFrame(loop);
-    if (lenis) lenis.raf(now);
+    lenis?.raf(now);
     clock.update(now);
-    state.dt = Math.min(clock.getDelta(), 0.05);
-    state.time = clock.getElapsed();
+    const dt = Math.min(clock.getDelta(), 0.05);
+    const time = clock.getElapsed();
 
     const y = scrollY();
-    const { index, k } = timeline.sample(y, { snap: reduced });
-    const a = sectionStops[index];
-    const b = sectionStops[index + 1];
-    poseBetween(a, b, k, pose);
+    const raw = clamp((y - tourTop) / tourLen) * (rig.count - 1);
+    // amortissement : mouvement continu même avec un scroll saccadé (tactile)
+    p = reduced ? Math.round(raw) : first || noDamp ? raw : p + (raw - p) * (1 - Math.exp(-dt * 7));
+    updateCaptions(p);
+    root.classList.toggle('is-scrolled', y > 40);
 
-    // broche du hero : elle file vers l'enseigne pendant le trajet hero → façade
-    state.heroT = index === 0 ? k : 1;
-    // station regardée (pour le projecteur et les écrans)
-    const atStation = (s) => (s && s.station != null ? s.station : null);
-    const sa = atStation(a);
-    const sb = atStation(b);
-    if (sa != null && sb != null) state.station = lerp(sa, sb, k);
-    else if (sa != null) state.station = k < 0.5 ? sa : -1;
-    else if (sb != null) state.station = k > 0.5 ? sb : -1;
-    else state.station = -1;
+    if (y > infosTop + 10 && !first) return; // la section infos recouvre tout
+    rig.sample(p, pose);
 
-    updateCards(y);
-    updateNav(k < 0.5 ? index : index + 1, y);
+    // léger flottement de caméra à l'épaule
+    const sway = reduced ? 0 : 1;
+    camera.position.copy(pose.pos);
+    camera.position.y += Math.sin(time * 0.9) * 0.008 * sway;
+    camera.fov = pose.fov;
+    camera.updateProjectionMatrix();
+    mouse.sx = lerp(mouse.sx, mouse.x, 0.04);
+    mouse.sy = lerp(mouse.sy, mouse.y, 0.04);
+    look.copy(pose.target);
+    camera.lookAt(look);
+    right.setFromMatrixColumn(camera.matrix, 0);
+    up.setFromMatrixColumn(camera.matrix, 1);
+    look
+      .addScaledVector(right, mouse.sx * 0.18 + Math.sin(time * 0.37) * 0.01 * sway)
+      .addScaledVector(up, -mouse.sy * 0.1 + Math.sin(time * 0.53) * 0.008 * sway);
+    camera.lookAt(look);
 
-    // la section infos recouvre l'écran : inutile de rendre la 3D
-    if (y >= infosTop && !first) return;
-    frame();
-    world.update(state);
-    renderer.render(world.scene, camera);
+    // la porte est grande ouverte avant que la caméra n'atteigne le seuil
+    store.anim.door.rotation.y = -smoothstep(0.9, 2.0, p) * 1.45;
+
+    if (!reduced) inside.anim.meats.forEach((m) => (m.rotation.y += dt * 0.35));
+    inside.anim.lights.forEach((l, i) => (l.intensity = 4 + Math.sin(time * 7 + i) * 0.25 + Math.sin(time * 13.1) * 0.15));
+
+    post.focus(camera.position.distanceTo(pose.target), p < 2.5 ? 14 : 4.5);
+    post.render(dt);
+    adapt(dt);
+
     if (first) {
       first = false;
-      tick();
       ready();
     }
   }
 
-  renderer.compile(world.scene, camera);
-  tick();
+  renderer.compile(scene, camera);
+  progress(97);
   requestAnimationFrame(loop);
 
-  // accès de débogage (utilisé par les tests de capture)
-  window.__kebab = { renderer, world, camera, timeline, lenis, stats: world.stats };
+  // accès de débogage (utilisé par les captures de test)
+  window.__kebab = {
+    renderer,
+    scene,
+    camera,
+    lenis,
+    measure,
+    get p() {
+      return p;
+    },
+  };
 }
 
 boot().catch((err) => {

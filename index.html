@@ -3,12 +3,12 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Kebab Studio | Le kebab que tu composes en 5 étapes</title>
+    <title>Kebab Studio | Ici, c'est toi le chef</title>
     <meta
       name="description"
-      content="Kebab Studio, le kebab où c'est toi le chef : choisis ton pain, ta viande, ta garniture, ta sauce et ton topping. Visite le studio en 3D."
+      content="Kebab Studio : pain cuit chaque matin, broche tranchée à la minute, crudités du jour et six sauces maison. Entre dans le studio en 3D."
     />
-    <meta name="theme-color" content="#F5F0E6" />
+    <meta name="theme-color" content="#0b0b0b" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
@@ -16,10 +16,7 @@
     <meta property="og:locale" content="fr_FR" />
     <meta property="og:site_name" content="Kebab Studio" />
     <meta property="og:title" content="Kebab Studio | Ici, c'est toi le chef" />
-    <meta
-      property="og:description"
-      content="Pain, viande, garniture, sauce, topping : compose ton kebab en 5 étapes. Visite le studio en 3D."
-    />
+    <meta property="og:description" content="Entre dans le studio : la broche, le pain du jour, les crudités, les sauces maison." />
     <meta property="og:image" content="/og-image.jpg" />
     <meta name="twitter:card" content="summary_large_image" />
 
@@ -65,251 +62,87 @@
 
     <div class="loader" aria-hidden="true">
       <img class="loader__logo" src="/src/assets/logo.webp" alt="" width="831" height="509" />
-      <div class="loader__bar"><i></i><i></i><i></i><i></i><i></i></div>
+      <span class="loader__pct">00</span>
     </div>
 
     <canvas id="scene" aria-hidden="true"></canvas>
-    <div class="grain" aria-hidden="true"></div>
 
     <header class="nav">
-      <a class="nav__logo" href="#accueil" aria-label="Kebab Studio, retour en haut">
+      <a class="nav__logo" href="#top" aria-label="Kebab Studio, retour au début">
         <img src="/src/assets/logo.webp" alt="Kebab Studio" width="831" height="509" />
       </a>
       <nav class="nav__links" aria-label="Navigation principale">
-        <a href="#facade">La visite</a>
-        <a href="#pain">Le menu</a>
         <a href="#infos">Infos</a>
       </nav>
-      <a class="btn btn--ink nav__cta" href="#commander">Commander</a>
+      <a class="btn btn--light" href="#commander">Commander</a>
     </header>
 
-    <nav class="skewer" aria-label="Étapes de la visite">
-      <span class="skewer__rod" aria-hidden="true"></span>
-      <ol>
-        <li>
-          <a href="#facade" style="--c: var(--ink)" data-target="facade"><span>La façade</span></a>
-        </li>
-        <li>
-          <a href="#pain" style="--c: var(--yellow)" data-target="pain"><span>Ton pain</span></a>
-        </li>
-        <li>
-          <a href="#viande" style="--c: var(--red)" data-target="viande"><span>Ta viande</span></a>
-        </li>
-        <li>
-          <a href="#garniture" style="--c: var(--green)" data-target="garniture"><span>Ta garniture</span></a>
-        </li>
-        <li>
-          <a href="#sauce" style="--c: var(--pink)" data-target="sauce"><span>Ta sauce</span></a>
-        </li>
-        <li>
-          <a href="#topping" style="--c: var(--purple)" data-target="topping"><span>Ton topping</span></a>
-        </li>
-        <li>
-          <a href="#salle" style="--c: var(--blue)" data-target="salle"><span>La salle</span></a>
-        </li>
-      </ol>
-    </nav>
+    <!-- Légendes de la visite : peu de texte, la scène parle -->
+    <div class="hud" id="top">
+      <section class="cap cap--hero" data-key="0" aria-labelledby="hero-title">
+        <h1 class="hero__title" id="hero-title"><span>Kebab</span> <span>Studio</span></h1>
+        <p class="hero__lead">Ici, c'est toi le chef.</p>
+      </section>
+      <span class="hero__cue" aria-hidden="true">Scrolle pour entrer</span>
 
-    <main id="tour">
-      <!-- 0 · Accueil -->
-      <section class="stop stop--hero" id="accueil" data-stop="hero" data-side="left" data-len="170">
-        <div class="stop__pin">
-          <div class="hero">
-            <h1 class="hero__title">Ici, c'est toi le&nbsp;chef.</h1>
-            <p class="hero__lead">
-              Kebab Studio, c'est le kebab que tu composes toi-même, en 5&nbsp;étapes&nbsp;: ton pain, ta viande, ta garniture, ta sauce et
-              ton topping.
-            </p>
-            <div class="hero__actions">
-              <a class="btn btn--ink" href="#facade">Visiter le studio</a>
-              <a class="btn btn--paper" href="#infos">Adresse et horaires</a>
-            </div>
-            <p class="hero__note" aria-hidden="true">fais défiler, on entre&nbsp;!</p>
-          </div>
-        </div>
+      <section class="cap" data-key="1">
+        <h2>Pousse la porte.</h2>
+        <p>Une vitrine sur la rue, la broche qui tourne derrière le comptoir.</p>
       </section>
 
-      <!-- 1 · Façade -->
-      <section class="stop" id="facade" data-stop="facade" data-side="left" data-len="190">
-        <div class="stop__pin">
-          <article class="card" style="--c: var(--yellow); --tilt: -1.5deg">
-            <h2 class="card__title">Crée. Choisis. Dévore.</h2>
-            <p>
-              Tu ne peux pas la rater&nbsp;: la façade noire, les taches de couleur et la broche arc-en-ciel au-dessus de la porte. Derrière
-              la vitrine, un seul comptoir où tout se compose devant toi.
-            </p>
-            <p class="card__hand">Pousse la porte, on te fait visiter.</p>
-          </article>
-        </div>
+      <section class="cap" data-key="3">
+        <h2>Tout se prépare devant toi.</h2>
       </section>
 
-      <!-- 2 · Concept -->
-      <section class="stop" id="concept" data-stop="concept" data-side="right" data-len="190">
-        <div class="stop__pin">
-          <article class="card" style="--c: var(--pink); --tilt: 1.2deg">
-            <h2 class="card__title">Mix, match, déguste.</h2>
-            <p>
-              Tu longes le comptoir et tu choisis à chaque station. Cinq étapes, des centaines de combinaisons, et un kebab qui ne ressemble
-              qu'à toi.
-            </p>
-            <ol class="steps-mini">
-              <li style="--c: var(--yellow)">Ton pain</li>
-              <li style="--c: var(--red)">Ta viande</li>
-              <li style="--c: var(--green)">Ta garniture</li>
-              <li style="--c: var(--pink)">Ta sauce</li>
-              <li style="--c: var(--purple)">Ton topping</li>
-            </ol>
-          </article>
-        </div>
+      <section class="cap" data-key="4">
+        <h2>La broche</h2>
+        <p>Marinée 24&nbsp;heures, tranchée à la minute.</p>
       </section>
 
-      <!-- 3 · Ton pain -->
-      <section class="stop" id="pain" data-stop="pain" data-side="right" data-len="200">
-        <div class="stop__pin">
-          <article class="card card--station" style="--c: var(--yellow); --tilt: -1deg">
-            <p class="card__step"><b>1</b> étape sur 5</p>
-            <h2 class="card__title"><span class="tile">Ton pain</span></h2>
-            <p class="card__lead">Tout commence par le pain.</p>
-            <p>Cuit chaque matin, puis doré à la plancha juste avant d'être garni. Croustillant dehors, moelleux dedans.</p>
-            <ul class="chips" aria-label="Choix de pain">
-              <li>Pain turc maison</li>
-              <li>Galette roulée</li>
-              <li>Pain pita</li>
-              <li>Bowl sans pain</li>
-            </ul>
-          </article>
-        </div>
+      <section class="cap" data-key="5">
+        <h2>Le pain, les crudités</h2>
+        <p>Pain turc cuit chaque matin, légumes coupés du jour.</p>
       </section>
 
-      <!-- 4 · Ta viande -->
-      <section class="stop" id="viande" data-stop="viande" data-side="right" data-len="200">
-        <div class="stop__pin">
-          <article class="card card--station" style="--c: var(--red); --tilt: 1.4deg">
-            <p class="card__step"><b>2</b> étape sur 5</p>
-            <h2 class="card__title"><span class="tile">Ta viande</span></h2>
-            <p class="card__lead">La broche tourne depuis l'ouverture.</p>
-            <p>
-              Marinée 24&nbsp;heures, rôtie à la verticale et tranchée à la minute, sous tes yeux. Côté veggie, les falafels sont faits
-              maison.
-            </p>
-            <ul class="chips" aria-label="Choix de viande">
-              <li>Veau-dinde mariné</li>
-              <li>Poulet au paprika</li>
-              <li>Kefta épicée</li>
-              <li>Falafels (veggie)</li>
-            </ul>
-          </article>
-        </div>
+      <section class="cap" data-key="6">
+        <h2>Sauces et toppings</h2>
+        <p>Six sauces maison, frites, cheddar, feta.</p>
       </section>
 
-      <!-- 5 · Ta garniture -->
-      <section class="stop" id="garniture" data-stop="garniture" data-side="right" data-len="200">
-        <div class="stop__pin">
-          <article class="card card--station" style="--c: var(--green); --tilt: -1.3deg">
-            <p class="card__step"><b>3</b> étape sur 5</p>
-            <h2 class="card__title"><span class="tile">Ta garniture</span></h2>
-            <p class="card__lead">Le croquant, coupé du jour.</p>
-            <p>Des légumes frais, coupés sur place tous les matins. Tu prends tout, ou rien du tout&nbsp;: c'est ton kebab.</p>
-            <ul class="chips" aria-label="Choix de garniture">
-              <li>Salade</li>
-              <li>Tomates</li>
-              <li>Oignons rouges</li>
-              <li>Concombre</li>
-              <li>Chou rouge</li>
-              <li>Carottes</li>
-            </ul>
-          </article>
-        </div>
+      <section class="cap" data-key="7">
+        <h2>Good food, good vibes.</h2>
+        <p>Sur place, à emporter ou en livraison.</p>
       </section>
 
-      <!-- 6 · Ta sauce -->
-      <section class="stop" id="sauce" data-stop="sauce" data-side="right" data-len="200">
-        <div class="stop__pin">
-          <article class="card card--station" style="--c: var(--pink); --tilt: 1deg">
-            <p class="card__step"><b>4</b> étape sur 5</p>
-            <h2 class="card__title"><span class="tile">Ta sauce</span></h2>
-            <p class="card__lead">La sauce, c'est ta signature.</p>
-            <p>Six sauces maison, dont une recette que tu ne trouveras qu'ici. Tu peux en mélanger deux, on ne juge pas.</p>
-            <ul class="chips" aria-label="Choix de sauce">
-              <li>Blanche à l'ail</li>
-              <li>Samouraï</li>
-              <li>Algérienne</li>
-              <li>Harissa</li>
-              <li>Andalouse</li>
-              <li>Sauce Studio</li>
-            </ul>
-          </article>
+      <section class="cap cap--final" data-key="8" id="commander">
+        <h2>Ton kebab.<br />Ta création.</h2>
+        <div class="cap__actions">
+          <!-- À COMPLÉTER : liens réels vers vos pages Uber Eats / Deliveroo -->
+          <a class="btn btn--yellow" href="https://www.ubereats.com/fr" target="_blank" rel="noopener">Commander sur Uber Eats</a>
+          <a class="btn btn--ghost" href="https://deliveroo.fr/fr/" target="_blank" rel="noopener">Deliveroo</a>
         </div>
       </section>
+    </div>
 
-      <!-- 7 · Ton topping -->
-      <section class="stop" id="topping" data-stop="topping" data-side="right" data-len="200">
-        <div class="stop__pin">
-          <article class="card card--station" style="--c: var(--purple); --tilt: -1.2deg">
-            <p class="card__step"><b>5</b> étape sur 5</p>
-            <h2 class="card__title"><span class="tile tile--light">Ton topping</span></h2>
-            <p class="card__lead">La touche finale.</p>
-            <p>Fromage fondu, frites directement dans le kebab ou jalapeños pour les courageux&nbsp;: c'est le moment de te lâcher.</p>
-            <ul class="chips" aria-label="Choix de topping">
-              <li>Cheddar fondu</li>
-              <li>Feta</li>
-              <li>Frites maison</li>
-              <li>Jalapeños</li>
-              <li>Oignons crispy</li>
-            </ul>
-          </article>
-        </div>
-      </section>
+    <!-- longueur de la visite au scroll -->
+    <div id="tour" aria-hidden="true"></div>
 
-      <!-- 8 · La salle -->
-      <section class="stop" id="salle" data-stop="salle" data-side="left" data-len="190">
-        <div class="stop__pin">
-          <article class="card" style="--c: var(--blue); --tilt: 1.3deg">
-            <h2 class="card__title">Good food, good vibes.</h2>
-            <p>
-              Une salle colorée pour se poser entre potes, des tabourets qui donnent le sourire et la musique juste un peu trop forte. Sur
-              place, à emporter ou en livraison.
-            </p>
-          </article>
-        </div>
-      </section>
-
-      <!-- 9 · Ton kebab -->
-      <section class="stop stop--final" id="commander" data-stop="final" data-side="left" data-len="150">
-        <div class="stop__pin">
-          <article class="card card--final" style="--c: var(--yellow); --tilt: -1deg">
-            <h2 class="card__title">Ton kebab. Ta création.</h2>
-            <p>Tu as fait le tour du studio. Il ne reste plus qu'à composer le tien, sur place ou chez toi.</p>
-            <div class="card__actions">
-              <!-- À COMPLÉTER : liens réels vers vos pages Uber Eats / Deliveroo -->
-              <a class="btn btn--ink" href="https://www.ubereats.com/fr" target="_blank" rel="noopener">Commander sur Uber Eats</a>
-              <a class="btn btn--paper" href="https://deliveroo.fr/fr/" target="_blank" rel="noopener">Commander sur Deliveroo</a>
-            </div>
-          </article>
-        </div>
-      </section>
-    </main>
-
-    <!-- Infos pratiques : section classique, opaque, qui recouvre la scène 3D -->
     <section class="infos" id="infos" aria-labelledby="infos-title">
       <div class="infos__inner">
         <h2 class="infos__title" id="infos-title">Viens composer le tien.</h2>
 
         <div class="infos__grid">
           <!-- À COMPLÉTER : adresse réelle -->
-          <article class="info" style="--c: var(--yellow); --tilt: -1deg">
+          <div class="info">
             <h3>Le studio</h3>
-            <address>
-              12 rue des Saveurs<br />
-              75011 Paris
-            </address>
+            <address>12 rue des Saveurs<br />75011 Paris</address>
             <a class="link" href="https://www.google.com/maps/search/?api=1&query=Kebab+Studio" target="_blank" rel="noopener"
-              >Ouvrir l'itinéraire</a
+              >Itinéraire</a
             >
-          </article>
+          </div>
 
           <!-- À COMPLÉTER : horaires réels -->
-          <article class="info" style="--c: var(--pink); --tilt: 1.2deg">
+          <div class="info">
             <h3>Horaires</h3>
             <dl class="hours">
               <div>
@@ -325,11 +158,11 @@
                 <dd>11h30 – 23h30</dd>
               </div>
             </dl>
-          </article>
+          </div>
 
           <!-- À COMPLÉTER : téléphone, e-mail, réseaux -->
-          <article class="info" style="--c: var(--green); --tilt: -0.8deg">
-            <h3>Nous joindre</h3>
+          <div class="info">
+            <h3>Contact</h3>
             <p>
               <a class="link" href="tel:+33123456789">01 23 45 67 89</a><br />
               <a class="link" href="mailto:bonjour@kebabstudio.fr">bonjour@kebabstudio.fr</a>
@@ -338,14 +171,18 @@
               <a href="https://www.instagram.com/" target="_blank" rel="noopener">Instagram</a>
               <a href="https://www.tiktok.com/" target="_blank" rel="noopener">TikTok</a>
             </p>
-          </article>
+          </div>
         </div>
       </div>
 
       <footer class="footer">
         <img src="/src/assets/logo.webp" alt="Kebab Studio" width="831" height="509" loading="lazy" />
-        <p>Sur place, à emporter ou en livraison.</p>
-        <p class="footer__legal">© <span data-year>2026</span> Kebab Studio. <a href="#">Mentions légales</a></p>
+        <p class="footer__legal">© <span data-year>2026</span> Kebab Studio · <a href="#">Mentions légales</a></p>
+        <p class="footer__credits">
+          Rue : « Urban Alley 01 » et café : « Comfy Cafe », Poly Haven (CC0). Frigo à boissons : Sean Thomas / Eric Chadwick, suspensions :
+          Wayfair / Eric Chadwick, plantes : Rico Cilliers / Eric Chadwick, glTF Sample Assets Khronos (CC BY 4.0). Pierre : ambientCG
+          (CC0).
+        </p>
       </footer>
     </section>
 

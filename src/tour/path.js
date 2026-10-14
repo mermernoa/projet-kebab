@@ -1,105 +1,66 @@
 import * as THREE from 'three';
-import { STATION_Z, MEAL_POS } from '../three/interior.js';
+import { SPOTS, MEAL_POS } from '../world/layout.js';
 
 const v = (x, y, z) => new THREE.Vector3(x, y, z);
 
 /*
- * Arrêts de la caméra, dans l'ordre des sections HTML (data-stop).
- *   side : côté de l'écran occupé par la carte de texte (le sujet 3D se décale de l'autre côté)
- *   fit  : à quel point l'arrêt doit rester cadré en largeur sur un écran vertical (0 → 1)
- *   via  : points de passage pour ARRIVER à cet arrêt (passer par la porte, etc.)
- *   portrait : pose spécifique aux écrans verticaux (téléphones)
+ * Plans de la visite, dans l'ordre. La caméra suit une seule courbe continue
+ * qui passe par chacun d'eux ; elle ralentit à chaque plan sans s'arrêter net.
+ *   fov       focale verticale (desktop)
+ *   portrait  ajustements pour écran vertical
  */
-const station = (id, i) => ({
-  id,
-  pos: v(-2.05, 2.22, STATION_Z[i] + 1.05),
-  target: v(-4.5, 1.18, STATION_Z[i] - 0.1),
-  fov: 50,
-  side: 'right',
-  fit: 0.85,
-  station: i,
-});
-
-export const STOPS = [
-  { id: 'hero', pos: v(0, 2.35, 10.2), target: v(0, 2.3, 0), fov: 42, side: 'left', fit: 0.35 },
-  { id: 'facade', pos: v(0.7, 2.25, 14.6), target: v(0, 2.85, 0), fov: 46, side: 'left', fit: 0.85 },
+export const SHOTS = [
+  // 0 · dans la ruelle, l'enseigne apparaît à droite
+  { pos: v(-0.4, 1.62, -0.7), target: v(8, 1.85, 1.2), fov: 58, portrait: { target: v(6, 1.9, 2.6), fov: 72 } },
+  // 1 · face à la devanture
+  { pos: v(0.85, 1.58, 0.15), target: v(3.2, 1.95, 4.2), fov: 54, portrait: { pos: v(1.6, 1.55, -0.2), fov: 76 } },
+  // 2 · devant la porte
+  { pos: v(3.1, 1.6, 2.55), target: v(3.15, 1.5, 7), fov: 56, portrait: { fov: 74 } },
+  // 3 · on entre : le comptoir à gauche, la salle à droite
+  { pos: v(3.15, 1.64, 4.95), target: v(3.7, 1.25, 10), fov: 60, portrait: { fov: 78 } },
+  // 4 · la broche
+  { pos: v(3.25, 1.58, 5.35), target: v(5.7, 1.4, SPOTS.broche + 0.15), fov: 46, portrait: { fov: 66 } },
+  // 5 · pain et crudités
+  { pos: v(3.3, 1.7, SPOTS.pain + 0.2), target: v(4.62, 1.02, SPOTS.crudites - 0.1), fov: 48, portrait: { fov: 68 } },
+  // 6 · sauces et toppings
+  { pos: v(3.35, 1.66, SPOTS.crudites + 0.75), target: v(4.6, 1.02, SPOTS.toppings - 0.15), fov: 48, portrait: { fov: 68 } },
+  // 7 · la salle et le néon
+  { pos: v(3.7, 1.66, 9.8), target: v(1.6, 1.45, 13.7), fov: 56, portrait: { fov: 74 } },
+  // 8 · le menu servi
   {
-    id: 'concept',
-    pos: v(2.9, 2.55, -1.3),
-    target: v(-2.4, 1.05, -8.8),
-    fov: 56,
-    side: 'right',
-    fit: 0.7,
-    portrait: { pos: v(1.4, 2.35, -1.7), target: v(-2.9, 1.0, -7.6), fov: 52, fit: 0 },
-    via: [
-      { pos: v(0.15, 1.85, 4.2), target: v(0, 1.75, -4) },
-      { pos: v(0.2, 1.9, -0.3), target: v(-0.6, 1.6, -6) },
-    ],
-  },
-  station('pain', 0),
-  station('viande', 1),
-  station('garniture', 2),
-  station('sauce', 3),
-  station('topping', 4),
-  {
-    id: 'salle',
-    pos: v(-1.0, 2.05, -4.4),
-    target: v(5.0, 1.25, -10.8),
-    fov: 54,
-    side: 'left',
-    fit: 0.8,
-    via: [{ pos: v(-0.6, 2.1, -8.6), target: v(2.0, 1.4, -13) }],
-  },
-  {
-    id: 'final',
-    pos: v(MEAL_POS.x - 0.95, 1.62, MEAL_POS.z + 1.1),
-    target: v(MEAL_POS.x + 0.05, 0.84, MEAL_POS.z - 0.05),
+    pos: v(MEAL_POS.x + 0.75, 1.32, MEAL_POS.z - 0.82),
+    target: v(MEAL_POS.x - 0.02, 0.8, MEAL_POS.z + 0.02),
     fov: 40,
-    side: 'left',
-    fit: 0.5,
+    portrait: { fov: 58 },
   },
 ];
 
-/** Variante des arrêts pour écran vertical (les poses `portrait` remplacent celles du desktop). */
-export const STOPS_PORTRAIT = STOPS.map((s) => (s.portrait ? { ...s, ...s.portrait, id: s.id + '~p' } : s));
+export function buildRig(portrait) {
+  const shots = SHOTS.map((s) => (portrait && s.portrait ? { ...s, ...s.portrait } : s));
+  const pos = new THREE.CatmullRomCurve3(
+    shots.map((s) => s.pos),
+    false,
+    'centripetal',
+  );
+  const target = new THREE.CatmullRomCurve3(
+    shots.map((s) => s.target),
+    false,
+    'centripetal',
+  );
+  const fovs = shots.map((s) => s.fov);
+  const n = shots.length - 1;
+  // smootherstep : la caméra ralentit en douceur à chaque plan
+  const ease = (u) => u * u * u * (u * (u * 6 - 15) + 10);
 
-const curveCache = new Map();
-function curvesFor(a, b) {
-  const key = a.id + '>' + b.id;
-  if (!curveCache.has(key)) {
-    const via = b.via || [];
-    curveCache.set(key, {
-      pos: new THREE.CatmullRomCurve3([a.pos, ...via.map((p) => p.pos), b.pos], false, 'centripetal'),
-      target: new THREE.CatmullRomCurve3([a.target, ...via.map((p) => p.target), b.target], false, 'centripetal'),
-    });
+  /** p ∈ [0, n] : index flottant du plan */
+  function sample(p, out) {
+    const i = Math.min(n - 1, Math.floor(p));
+    const u = ease(Math.min(1, Math.max(0, p - i)));
+    const t = (i + u) / n;
+    pos.getPoint(t, out.pos);
+    target.getPoint(t, out.target);
+    out.fov = fovs[i] + (fovs[i + 1] - fovs[i]) * u;
+    return out;
   }
-  return curveCache.get(key);
-}
-
-/** Pose interpolée entre deux arrêts (k ∈ [0, 1]). */
-export function poseBetween(a, b, k, out) {
-  if (k <= 0 || !b) {
-    out.pos.copy(a.pos);
-    out.target.copy(a.target);
-    out.fov = a.fov;
-  } else if (k >= 1) {
-    out.pos.copy(b.pos);
-    out.target.copy(b.target);
-    out.fov = b.fov;
-  } else if (b.via) {
-    const c = curvesFor(a, b);
-    c.pos.getPoint(k, out.pos);
-    c.target.getPoint(k, out.target);
-    out.fov = a.fov + (b.fov - a.fov) * k;
-  } else {
-    out.pos.lerpVectors(a.pos, b.pos, k);
-    out.target.lerpVectors(a.target, b.target, k);
-    out.fov = a.fov + (b.fov - a.fov) * k;
-  }
-  const side = (s) => (s === 'left' ? -1 : s === 'right' ? 1 : 0);
-  const sa = side(a.side);
-  const sb = b ? side(b.side) : sa;
-  out.side = sa + (sb - sa) * Math.min(1, Math.max(0, k));
-  out.fit = a.fit + ((b ? b.fit : a.fit) - a.fit) * Math.min(1, Math.max(0, k));
-  return out;
+  return { sample, count: shots.length };
 }
