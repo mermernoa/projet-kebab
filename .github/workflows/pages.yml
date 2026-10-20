@@ -1,0 +1,49 @@
+name: Déploiement GitHub Pages
+
+# Publie le site sur https://mermernoa.github.io/projet-kebab/ à chaque push.
+# Le site est statique (dossier site/) : pas de build, on le copie tel quel.
+on:
+  push:
+    branches: [main, claude/clever-feynman-gpocb9]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Copier le site
+        run: cp -r site dist
+      # Sauvegarde : la visite 3D d'avant (branche claude/tender-dijkstra-7xrlxt) reste en ligne sous /sauvegarde/.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Construire la sauvegarde (visite 3D du 14 octobre 2026)
+        run: |
+          git fetch --depth=1 origin a545bc734138192c6e886c0afc60362c46644597
+          git worktree add --detach "$RUNNER_TEMP/sauvegarde" FETCH_HEAD
+          cd "$RUNNER_TEMP/sauvegarde"
+          npm ci
+          npx vite build --outDir "$GITHUB_WORKSPACE/dist/sauvegarde" --emptyOutDir
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

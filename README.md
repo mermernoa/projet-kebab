@@ -11,3 +11,11 @@ les engagements, les infos pratiques.
 
 État : hero en **plan B** (zoom sur la façade d'origine) et photos de stations provisoires (recadrages des rendus),
 en attendant les générations Higgsfield.
+
+## Déploiement
+
+Le workflow `.github/workflows/pages.yml` publie le site sur GitHub Pages (https://mermernoa.github.io/projet-kebab/)
+à chaque push sur `main` ou sur la branche de travail `claude/clever-feynman-gpocb9`.
+
+**Sauvegarde** : la visite 3D d'avant (branche `claude/tender-dijkstra-7xrlxt`, commit `a545bc7`) est construite à chaque
+déploiement et reste en ligne sous `/sauvegarde/` (https://mermernoa.github.io/projet-kebab/sauvegarde/).
