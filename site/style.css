@@ -445,6 +445,39 @@ body.intro-ready .nav { opacity: 0; transform: translateY(-12px); }
 body.intro-ready.is-loaded .nav { opacity: 1; transform: translateY(0); transition: opacity .8s var(--ease), transform .8s var(--ease), background .5s var(--ease), padding .5s var(--ease); }
 
 /* ============================================================
+   LE CLUB — Création du Mois, challenge, Kebab Lab, fidélité
+   ============================================================ */
+.club { position: relative; padding: clamp(90px, 13vh, 160px) var(--pad); background: var(--bg); color: var(--fg); overflow: hidden; }
+.club__inner { position: relative; z-index: 1; max-width: var(--maxw); margin: 0 auto; }
+.club__title { font-size: clamp(42px, 6vw, 86px); }
+.club__title em { color: var(--yellow); }
+.club .lede { color: var(--fg-soft); }
+.club__grid { margin-top: clamp(40px, 6vh, 64px); display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(16px, 2.2vw, 28px); }
+.club__card {
+  background: var(--c); color: var(--black); border: 3px solid var(--black); border-radius: 20px;
+  padding: 22px 20px 24px; box-shadow: 5px 5px 0 var(--cream); transform: rotate(var(--r, 0deg));
+}
+.club__card.reveal { transform: translateY(28px) rotate(var(--r, 0deg)); }
+.club__card.reveal.is-visible { transform: rotate(var(--r, 0deg)); }
+.club__card h3 { font-size: clamp(24px, 2.2vw, 30px); line-height: 1.05; margin: 14px 0 10px; }
+.club__card p { margin: 0; font-size: 15px; line-height: 1.5; }
+.club__card:nth-child(4) { color: #fff; }
+.club__tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; background: var(--black); color: var(--cream); padding: 4px 9px; border-radius: 999px; }
+.club__tag .soon { border-color: var(--cream); margin-left: 4px; font-size: 9px; padding: 1px 6px; }
+.club__form { margin-top: clamp(44px, 7vh, 72px); max-width: 760px; }
+.club__formtitle { margin: 0 0 14px; font-family: var(--serif); font-weight: 900; font-size: clamp(24px, 2.4vw, 32px); }
+.club__fields { display: flex; flex-wrap: wrap; gap: 12px; }
+.club__fields input {
+  flex: 1 1 200px; min-width: 0; font: inherit; font-size: 16px; padding: 14px 16px; border-radius: 14px;
+  border: 2.5px solid var(--cream); background: var(--bg-2); color: var(--fg);
+}
+.club__fields input::placeholder { color: var(--muted); }
+.club__msg { margin: 12px 0 0; font-size: 14px; color: var(--muted); }
+@media (max-width: 980px) { .club__grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .club__grid { grid-template-columns: 1fr; } .club__fields .btn { width: 100%; } }
+@media (prefers-reduced-motion: reduce) { .club__card.reveal { opacity: 1; transition: none; transform: rotate(var(--r, 0deg)); } }
+
+/* ============================================================
    RESPONSIVE
    ============================================================ */
 @media (max-width: 1080px) {

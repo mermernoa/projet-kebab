@@ -102,7 +102,7 @@
   var STEPS = [
     { key: "pain", label: "Ton pain", color: "var(--pink)", help: "Choisis ta base. Tous nos pains sont artisanaux.",
       single: true, required: "Choisis un pain pour continuer.",
-      groups: [{ items: ["Pain turc", "Galette roulée", "Pita", "Naan au fromage", "Pain au sésame", "Bowl (sans pain)"] }] },
+      groups: [{ items: ["Pain turc", "Galette roulée", "Pita", "Naan artisanal", "Pain au sésame", "Bowl (sans pain)"] }] },
     { key: "viande", label: "Ta viande", color: "var(--orange)", help: "Française, 100 % halal. Ou falafels maison.",
       single: true, required: "Choisis une viande pour continuer.",
       groups: [{ items: ["Veau-dinde à la broche", "Poulet à la broche", { n: "Bavette grillée", p: 1.5 }, "Poulet pané", "Poulet crousty", "Merguez", { n: "Falafels maison", tag: "vegan" }] }] },
@@ -123,7 +123,7 @@
     { key: "topping", label: "Ton topping", color: "multi", help: "La touche finale. Un inclus.",
       included: 1, max: 3,
       groups: [
-        { label: "Croustillant", items: ["Oignons frits", "Chips écrasées", "Graines de sésame", "Cacahuètes concassées"] },
+        { label: "Croustillant", items: ["Oignons crispy", "Chips écrasées", "Graines de sésame", "Cacahuètes concassées"] },
         { label: "Fondant", items: ["Cheddar gratiné", "Raclette fondue", "Œuf au plat"] },
         { label: "Frais", items: ["Herbes fraîches", "Grenade", "Citron vert"] },
         { label: "Piquant", items: ["Flocons de piment", "Filet de sauce piquante"] }
@@ -132,7 +132,12 @@
   var STUDIO = {
     pain: ["Pain au sésame"], viande: ["Poulet crousty"],
     garniture: ["Oignon rouge mariné", "Cheddar fondu", "Jalapeños", "Frites dedans"],
-    sauce: ["Sauce Studio", "Miel-piment"], topping: ["Oignons frits"]
+    sauce: ["Sauce Studio", "Miel-piment"], topping: ["Oignons crispy"]
+  };
+  /* La recette présentée à l'oral : L'Ophélie #472 */
+  var OPHELIE = {
+    pain: ["Naan artisanal"], viande: ["Poulet à la broche"],
+    garniture: ["Feta"], sauce: ["Curry"], topping: ["Oignons crispy"]
   };
 
   var stepsEl = document.getElementById("steps");
@@ -142,6 +147,7 @@
   var btnPrev = document.getElementById("btnPrev");
   var btnNext = document.getElementById("btnNext");
   var btnStudio = document.getElementById("btnStudio");
+  var btnOphelie = document.getElementById("btnOphelie");
   var navEl = document.getElementById("builderNav");
   var gridEl = document.getElementById("builder");
   var result = document.getElementById("result");
@@ -300,14 +306,21 @@
     msg.textContent = "Le Studio est prêt. Change ce que tu veux, puis signe ta création.";
   });
 
+  if (btnOphelie) btnOphelie.addEventListener("click", function () {
+    Object.keys(OPHELIE).forEach(function (k) { state[k] = OPHELIE[k].slice(); });
+    recipeName = "Ophélie";
+    renderRecap(); renderSteps();
+    createCard(472);
+  });
+
   function ingredientsList() {
     var out = [];
     STEPS.forEach(function (s) { out = out.concat(state[s.key]); });
     return out;
   }
 
-  function createCard() {
-    recipeNum = 100 + Math.floor(Math.random() * 900);
+  function createCard(fixedNum) {
+    recipeNum = fixedNum || 100 + Math.floor(Math.random() * 900);
     var label = recipeName.toUpperCase();
     document.getElementById("cardNumTop").textContent = "#" + recipeNum;
     document.getElementById("cardName").innerHTML = esc(label) + ' <span class="hash">#' + recipeNum + "</span>";
@@ -316,6 +329,7 @@
     document.getElementById("cardPrice").textContent = "Ton kebab : " + euro(p) + " · En formule : " + euro(p + FORMULE);
     gridEl.hidden = true;
     btnStudio.hidden = true;
+    if (btnOphelie) btnOphelie.hidden = true;
     result.hidden = false;
     // rejoue l'animation d'entrée
     var card = document.getElementById("card");
@@ -325,7 +339,7 @@
 
   document.getElementById("btnRestart").addEventListener("click", function () {
     reset();
-    result.hidden = true; gridEl.hidden = false; btnStudio.hidden = false; btnNext.style.display = "";
+    result.hidden = true; gridEl.hidden = false; btnStudio.hidden = false; if (btnOphelie) btnOphelie.hidden = false; btnNext.style.display = "";
     renderSteps(); renderPanel(); renderRecap();
     document.getElementById("cree-ton-kebab").scrollIntoView({ behavior: reduced ? "auto" : "smooth" });
   });
@@ -425,4 +439,15 @@
   }
 
   renderSteps(); renderPanel(); renderRecap();
+  /* ---------- 6. Le Club : inscription (maquette, rien n'est envoyé) ---------- */
+  var clubForm = document.getElementById("clubForm");
+  if (clubForm) clubForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var mail = document.getElementById("clubMail"), name = document.getElementById("clubName").value.trim();
+    var out = document.getElementById("clubMsg");
+    if (!mail.value || !mail.checkValidity()) { out.textContent = "Écris une adresse e-mail valide."; mail.focus(); return; }
+    out.textContent = "Bienvenue dans le Club" + (name ? ", " + name : "") + " ! (Maquette : aucune donnée n'est envoyée.)";
+    clubForm.reset();
+  });
+
 })();
