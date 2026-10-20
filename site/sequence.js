@@ -12,15 +12,18 @@
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   /* Fenêtres dans la progression [0..1] de la section, et chemin de caméra
-     de chaque plan. keys : u = position dans le plan [0..1].
-     dive : point où la caméra plonge pour passer au plan suivant. */
-  var OVERLAP = 0.03;
+     de chaque plan. keys : u = position dans le plan [0..1], x / y = point visé
+     (en % de l'image), s = zoom. Même transition partout : à la fin d'un plan,
+     la caméra plonge droit devant (zoom + flou) et ressort dans le plan suivant.
+     Plan 0 = la devanture : le dernier point visé est la porte ouverte. */
+  var OVERLAP = 0.025;
   var SHOTS = [
-    { win: [0.00, 0.22], keys: [{ u: 0, x: 0.50, y: 0.50, s: 1.28 }, { u: 0.45, x: 0.34, y: 0.44, s: 1.30 }, { u: 1, x: 0.30, y: 0.45, s: 1.40 }], dive: { x: 0.14, y: 0.50 } },
-    { win: [0.20, 0.42], keys: [{ u: 0, x: 0.30, y: 0.42, s: 1.30 }, { u: 0.5, x: 0.45, y: 0.50, s: 1.22 }, { u: 1, x: 0.66, y: 0.52, s: 1.30 }], dive: { x: 0.86, y: 0.46 } },
-    { win: [0.40, 0.62], keys: [{ u: 0, x: 0.55, y: 0.48, s: 1.22 }, { u: 0.5, x: 0.45, y: 0.52, s: 1.12 }, { u: 1, x: 0.30, y: 0.55, s: 1.28 }], dive: { x: 0.12, y: 0.45 } },
-    { win: [0.60, 0.82], keys: [{ u: 0, x: 0.42, y: 0.46, s: 1.18 }, { u: 0.55, x: 0.38, y: 0.43, s: 1.26 }, { u: 1, x: 0.34, y: 0.42, s: 1.38 }], dive: { x: 0.50, y: 0.85 } },
-    { win: [0.80, 1.00], keys: [{ u: 0, x: 0.50, y: 0.62, s: 1.20 }, { u: 0.5, x: 0.50, y: 0.56, s: 1.08 }, { u: 1, x: 0.46, y: 0.60, s: 1.16 }], dive: null }
+    { win: [0.000, 0.255], keys: [{ u: 0, x: 0.50, y: 0.50, s: 1.00 }, { u: 0.55, x: 0.55, y: 0.56, s: 1.22 }, { u: 1, x: 0.584, y: 0.62, s: 1.70 }] },
+    { win: [0.230, 0.405], keys: [{ u: 0, x: 0.50, y: 0.50, s: 1.28 }, { u: 0.45, x: 0.34, y: 0.44, s: 1.30 }, { u: 1, x: 0.30, y: 0.45, s: 1.40 }] },
+    { win: [0.380, 0.555], keys: [{ u: 0, x: 0.30, y: 0.42, s: 1.30 }, { u: 0.5, x: 0.45, y: 0.50, s: 1.22 }, { u: 1, x: 0.66, y: 0.52, s: 1.30 }] },
+    { win: [0.530, 0.705], keys: [{ u: 0, x: 0.55, y: 0.48, s: 1.22 }, { u: 0.5, x: 0.45, y: 0.52, s: 1.12 }, { u: 1, x: 0.30, y: 0.55, s: 1.28 }] },
+    { win: [0.680, 0.855], keys: [{ u: 0, x: 0.42, y: 0.46, s: 1.18 }, { u: 0.55, x: 0.38, y: 0.43, s: 1.26 }, { u: 1, x: 0.34, y: 0.42, s: 1.38 }] },
+    { win: [0.830, 1.000], keys: [{ u: 0, x: 0.50, y: 0.62, s: 1.20 }, { u: 0.5, x: 0.50, y: 0.56, s: 1.08 }, { u: 1, x: 0.46, y: 0.60, s: 1.16 }] }
   ];
 
   var stage = seq.querySelector(".seq__stage");
@@ -28,6 +31,8 @@
   var cams = shots.map(function (s) { return s.querySelector(".shot__cam"); });
   var frames = shots.map(function (s) { return s.querySelector(".shot__frame"); });
   var caps = [].slice.call(seq.querySelectorAll(".seq__cap"));
+  var words = [].slice.call(seq.querySelectorAll(".seq__words .word"));
+  var cue = document.getElementById("seqCue");
   var tour = document.getElementById("tour");
   var tourNum = document.getElementById("tourNum");
   var slices = tour ? [].slice.call(tour.querySelectorAll(".tour__slices li")) : [];
@@ -77,11 +82,9 @@
       var op = 1, blur = 0;
 
       if (!reduced) {
-        if (cfg.dive && u > 1 - T) {                 // sortie : plongée vers le point « dive »
+        if (i < SHOTS.length - 1 && u > 1 - T) {    // sortie : plongée droit devant
           var k = (u - (1 - T)) / T, kk = k * k;
           c.s *= 1 + 1.4 * kk;
-          c.x = lerp(c.x, cfg.dive.x, smooth(k));
-          c.y = lerp(c.y, cfg.dive.y, smooth(k));
           op = 1 - smoothstep(0.45, 1, k);
           blur = 9 * kk;
           speed = Math.max(speed, Math.sin(Math.PI * k));
@@ -95,7 +98,7 @@
         }
       } else {
         c.s = 1.04;
-        if (cfg.dive && u > 1 - T) op = 1 - smooth((u - (1 - T)) / T);
+        if (i < SHOTS.length - 1 && u > 1 - T) op = 1 - smooth((u - (1 - T)) / T);
         if (i > 0 && u < T) op = smooth(u / T);
       }
 
@@ -122,16 +125,20 @@
       cap.style.pointerEvents = o > 0.5 ? "auto" : "none";
     });
 
-    // indicateur de visite : visible tant que l'écran de la visite est collé
+    // « Crée. Choisis. Dévore. » : les mots se posent un par un
+    words.forEach(function (w) { w.classList.toggle("is-on", reduced || P >= parseFloat(w.dataset.wIn)); });
+    if (cue) cue.style.opacity = String(1 - smoothstep(0.005, 0.03, P));
+
+    // indicateur de visite : stations 1 à 5 (le plan 0 est la devanture)
     var rect = seq.getBoundingClientRect();
-    var inSeq = rect.top <= 1 && rect.bottom >= vh - 1;
+    var inSeq = rect.top <= 1 && rect.bottom >= vh - 1 && best > 0;
     if (tour) {
       tour.classList.toggle("is-on", inSeq);
-      if (inSeq && best > -1) {
-        tourNum.textContent = best + 1;
+      if (inSeq) {
+        tourNum.textContent = best;
         slices.forEach(function (li, i) {
-          li.classList.toggle("is-filled", i <= best);
-          li.classList.toggle("is-current", i === best);
+          li.classList.toggle("is-filled", i < best);
+          li.classList.toggle("is-current", i === best - 1);
         });
       }
     }

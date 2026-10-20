@@ -13,7 +13,7 @@
 
   <!-- ?v=N = cache-bust manuel de style.css / script.js / kebab.js (séparé de CACHE_BUST, qui ne gère que les frames). -->
   <link rel="stylesheet" href="style.css?v=2" />
-  <link rel="stylesheet" href="sequence.css?v=1" />
+  <link rel="stylesheet" href="sequence.css?v=2" />
 </head>
 <body>
 
@@ -21,7 +21,7 @@
 
   <!-- ============ NAV ============ -->
   <header class="nav" id="nav">
-    <a href="#hero" class="nav__brand" aria-label="Kebab Studio — retour en haut">
+    <a href="#visite" class="nav__brand" aria-label="Kebab Studio — retour en haut">
       <img src="assets/img/logo.png" alt="Kebab Studio" width="900" height="551" />
     </a>
     <nav class="nav__links" aria-label="Navigation principale">
@@ -49,69 +49,16 @@
 
   <main>
 
-    <!-- ============ HERO — l'arrivée (scroll-scrub) ============
-         PLAN B en place : 96 frames = zoom avant sur la façade (sources/facade-jour.png).
-         Quand la vraie vidéo Kling sera générée : remplacer assets/frames/, mettre
-         data-frames au bon nombre, recaler .scrub height (~N × 4.6vh) et incrémenter
-         CACHE_BUST dans script.js. -->
-    <section class="scrub" id="hero" data-frames="96" aria-label="Arrivée rue des Trois-Cailloux : la caméra s'approche de la devanture de Kebab Studio jusqu'au seuil de la porte ouverte">
-      <div class="scrub__stage">
-        <canvas class="scrub__canvas" aria-hidden="true"></canvas>
-        <div class="scrub__scrim" aria-hidden="true"></div>
-
-        <div class="loader" id="loader" role="status" aria-live="polite">
-          <img class="loader__logo" src="assets/img/logo.png" alt="Kebab Studio" width="900" height="551" />
-          <span class="loader__track" aria-hidden="true"><span class="loader__bar" id="loaderBar"></span></span>
-          <span class="loader__pct" id="loaderPct">0%</span>
-        </div>
-
-        <!-- Phrase 1 — plan large de la façade -->
-        <div class="scrub__beat" data-in="-0.06" data-out="0.22">
-          <p class="scrub__eyebrow">Kebab Studio — Amiens, rue des Trois-Cailloux</p>
-          <h1 class="scrub__title">Et toi,<br /><em>tu mets quoi&nbsp;?</em></h1>
-          <p class="scrub__tagline">Le kebab où c'est toi qui écris la recette.</p>
-        </div>
-
-        <!-- Phrase 2 — la caméra avance vers la devanture -->
-        <div class="scrub__beat" data-in="0.26" data-out="0.48">
-          <p class="scrub__eyebrow">5 étapes</p>
-          <h2 class="scrub__beat-title scrub__words">
-            <span class="word" data-w-in="0.27" style="--c: var(--pink)">Crée.</span>
-            <span class="word" data-w-in="0.31" style="--c: var(--green)">Choisis.</span>
-            <span class="word" data-w-in="0.35" style="--c: var(--violet)">Dévore.</span>
-          </h2>
-          <p class="scrub__beat-copy">Plus de 160 millions de combinaisons. Une seule règle : la tienne.</p>
-        </div>
-
-        <!-- Phrase 3 — la devanture remplit l'écran -->
-        <div class="scrub__beat" data-in="0.52" data-out="0.73">
-          <p class="scrub__eyebrow">La maison</p>
-          <h2 class="scrub__beat-title">Ton idée.<br /><em>Ton kebab.</em></h2>
-          <p class="scrub__beat-copy">Pain artisanal, viande française 100&nbsp;% halal, deux sauces maison. Le reste, c'est toi qui décides.</p>
-        </div>
-
-        <!-- Phrase 4 — au seuil de la porte ouverte -->
-        <div class="scrub__beat" data-in="0.78" data-out="1.01">
-          <p class="scrub__eyebrow">Le seuil</p>
-          <h2 class="scrub__beat-title">Entre.<br /><em>Ici, c'est toi le chef.</em></h2>
-          <p class="scrub__beat-copy">Le comptoir est juste derrière. Suis le guide.</p>
-          <a href="#cree-ton-kebab" class="btn btn--cta">Crée ton kebab</a>
-        </div>
-
-        <div class="scrub__cue" id="scrubCue" aria-hidden="true">
-          <span>Scrolle pour entrer</span>
-          <span class="scrub__cue-line"></span>
-        </div>
-      </div>
-    </section>
-
     <!-- ============ LA VISITE — plan-séquence continu au scroll ============
          Un seul écran fixe : la molette déplace la caméra d'une photo à l'autre
          (zooms, glissements, plongée d'une image dans la suivante). Les chemins de
          caméra sont dans sequence.js (SHOTS). -->
-    <section class="seq" id="visite" aria-label="Visite du restaurant en plan-séquence : le comptoir, la broche, la salle, le coin néon, ta place">
+    <section class="seq" id="visite" aria-label="Visite du restaurant en plan-séquence : la devanture rue des Trois-Cailloux, le comptoir, la broche, la salle, le coin néon, ta place">
       <div class="seq__stage">
 
+        <div class="shot" data-shot="0">
+          <div class="shot__frame"><div class="shot__cam"><img src="assets/img/s0-facade.jpg" alt="La devanture de Kebab Studio rue des Trois-Cailloux, porte ouverte, tabourets colorés en terrasse" width="1920" height="1080" decoding="async" /></div></div>
+        </div>
         <div class="shot" data-shot="1">
           <div class="shot__frame"><div class="shot__cam">
             <img src="assets/img/s1-comptoir.jpg" alt="Le comptoir de Kebab Studio : les écrans des 5 étapes, deux broches, la vitrine des garnitures et la salle aux banquettes jaunes" width="1920" height="1080" decoding="async" />
@@ -151,8 +98,36 @@
         <div class="seq__scrim" aria-hidden="true"></div>
         <div class="seq__vignette" aria-hidden="true"></div>
 
+        <!-- L'arrivée : les 4 phrases sur la devanture -->
+        <div class="seq__cap seq__cap--beat" data-in="-0.05" data-out="0.06">
+          <p class="scrub__eyebrow">Kebab Studio — Amiens, rue des Trois-Cailloux</p>
+          <h1 class="scrub__title">Et toi,<br /><em>tu mets quoi&nbsp;?</em></h1>
+          <p class="scrub__tagline">Le kebab où c'est toi qui écris la recette.</p>
+        </div>
+        <div class="seq__cap seq__cap--beat" data-in="0.075" data-out="0.13">
+          <p class="scrub__eyebrow">5 étapes</p>
+          <h2 class="scrub__beat-title seq__words">
+            <span class="word" data-w-in="0.08" style="--c: var(--pink)">Crée.</span>
+            <span class="word" data-w-in="0.092" style="--c: var(--green)">Choisis.</span>
+            <span class="word" data-w-in="0.104" style="--c: var(--violet)">Dévore.</span>
+          </h2>
+          <p class="scrub__beat-copy">Plus de 160 millions de combinaisons. Une seule règle : la tienne.</p>
+        </div>
+        <div class="seq__cap seq__cap--beat" data-in="0.145" data-out="0.19">
+          <p class="scrub__eyebrow">La maison</p>
+          <h2 class="scrub__beat-title">Ton idée.<br /><em>Ton kebab.</em></h2>
+          <p class="scrub__beat-copy">Pain artisanal, viande française 100&nbsp;% halal, deux sauces maison. Le reste, c'est toi qui décides.</p>
+        </div>
+        <div class="seq__cap seq__cap--beat" data-in="0.20" data-out="0.24">
+          <p class="scrub__eyebrow">Le seuil</p>
+          <h2 class="scrub__beat-title">Entre.<br /><em>Ici, c'est toi le chef.</em></h2>
+          <p class="scrub__beat-copy">Le comptoir est juste derrière. Suis le guide.</p>
+          <a href="#cree-ton-kebab" class="btn btn--cta">Crée ton kebab</a>
+        </div>
+        <div class="seq__cue" id="seqCue" aria-hidden="true"><span>Scrolle pour entrer</span><span class="scrub__cue-line"></span></div>
+
         <!-- Textes des stations : data-in / data-out = fenêtre dans la progression de la visite [0..1] -->
-        <div class="seq__cap seq__cap--right" data-in="0.035" data-out="0.185" style="--c: var(--pink)">
+        <div class="seq__cap seq__cap--right" data-in="0.255" data-out="0.385" style="--c: var(--pink)">
           <p class="station__tag"><span class="tag">Station 1/5</span> Le comptoir</p>
           <h2 class="station__title">Un comptoir. Cinq étapes.<br /><em>Zéro kebab pareil.</em></h2>
           <p class="station__copy">Ici, pas de menu figé au-dessus de la caisse. Tu avances le long du comptoir et tu composes : ton pain, ta viande, ta garniture, ta sauce, ton topping. On prépare sous tes yeux, dans l'ordre que tu as choisi.</p>
@@ -165,25 +140,25 @@
             <li><b>La vitrine</b> 20 garnitures, 4 incluses.</li>
           </ul>
         </div>
-        <div class="seq__cap" data-in="0.235" data-out="0.385" style="--c: var(--orange)">
+        <div class="seq__cap" data-in="0.405" data-out="0.535" style="--c: var(--orange)">
           <p class="station__tag"><span class="tag">Station 2/5</span> La broche</p>
           <h2 class="station__title">Ça dore à la broche.<br /><em>Ça se tranche à la minute.</em></h2>
           <p class="station__copy">Veau-dinde et poulet, dorés lentement, tranchés quand tu commandes. Envie d'autre chose ? Bavette grillée, poulet crousty, poulet pané, merguez ou falafels maison. Et chaque pain est artisanal, du naan au fromage au pain au sésame.</p>
           <p class="station__meta">Viande française · 100&nbsp;% halal · Pain artisanal · Option vegan</p>
         </div>
-        <div class="seq__cap" data-in="0.435" data-out="0.585" style="--c: var(--green)">
+        <div class="seq__cap" data-in="0.555" data-out="0.685" style="--c: var(--green)">
           <p class="station__tag"><span class="tag">Station 3/5</span> La salle</p>
           <h2 class="station__title">Ici, on ne mange pas<br /><em>sur le pouce.</em></h2>
           <p class="station__copy">Banquettes jaunes, tabourets rose, vert et jaune, plafond peint en taches de couleur. 35 places pour poser le plateau, refaire le monde et comparer vos créations.</p>
           <p class="station__meta">35 places · Terrasse sur la rue piétonne · Mix. Match. Déguste.</p>
         </div>
-        <div class="seq__cap" data-in="0.635" data-out="0.785" style="--c: var(--violet)">
+        <div class="seq__cap" data-in="0.705" data-out="0.835" style="--c: var(--violet)">
           <p class="station__tag"><span class="tag tag--light">Station 4/5</span> Le coin néon</p>
           <h2 class="station__title">Good Food.<br /><em>Good Vibes.</em></h2>
           <p class="station__copy">Le néon doré, la banquette jaune, ton kebab en main : le spot est prêt. Prends ta photo, poste ta création avec #MonKebabStudio. Les meilleures repassent sur notre compte.</p>
           <p class="station__meta">#MonKebabStudio · #KebabStudioChallenge · @kebabstudio.amiens (bientôt)</p>
         </div>
-        <div class="seq__cap seq__cap--multi" data-in="0.835" data-out="1.01">
+        <div class="seq__cap seq__cap--multi" data-in="0.855" data-out="1.01">
           <p class="station__tag"><span class="tag tag--multi">Station 5/5</span> Ta place</p>
           <h2 class="station__title">Ta recette a un nom.<br /><em>Le tien.</em></h2>
           <p class="station__copy">À la fin des 5 étapes, ta création reçoit son nom et son numéro : L'Ophélie #472, L'Elisa #031… Si elle cartonne, elle entre à la carte : c'est <strong>La Création du Mois</strong>.</p>
@@ -334,6 +309,6 @@
 
   <script src="script.js?v=1"></script>
   <script src="kebab.js?v=2"></script>
-  <script src="sequence.js?v=1"></script>
+  <script src="sequence.js?v=2"></script>
 </body>
 </html>

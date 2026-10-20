@@ -1,7 +1,7 @@
 /* ============================================================
    LA VISITE — plan-séquence (visite.html uniquement)
    ============================================================ */
-.seq { position: relative; height: 1000vh; background: var(--ink); }
+.seq { position: relative; height: 1200vh; background: var(--ink); }
 .seq__stage { position: sticky; top: 0; height: 100vh; overflow: hidden; background: var(--ink); }
 
 .shot { position: absolute; inset: 0; overflow: hidden; opacity: 0; visibility: hidden; will-change: opacity, filter; }
@@ -52,11 +52,26 @@
 .autoplay.is-hidden { opacity: 0; visibility: hidden; transform: translate(-50%, 20px); }
 .autoplay[aria-pressed="true"] { background: var(--black); color: var(--cream); box-shadow: 3px 3px 0 var(--yellow); }
 .autoplay[aria-pressed="true"] .autoplay__icon { background: var(--yellow); color: var(--black); }
-/* le repère « scrolle pour entrer » du hero laisse la place au bouton */
-.scrub__cue { bottom: clamp(90px, 14vh, 140px); }
+/* L'arrivée : les 4 phrases sur la devanture (mêmes styles que les beats du hero) */
+.seq__cap--beat { max-width: 860px; }
+.seq__words { display: flex; flex-wrap: wrap; gap: 0.18em 0.28em; text-shadow: none; }
+.seq__words .word {
+  display: inline-block; background: var(--c); color: var(--black); padding: 0.02em 0.22em 0.08em;
+  border: 4px solid #fff; box-shadow: 5px 5px 0 rgba(0,0,0,0.55);
+  opacity: 0; transform: translateY(24px) rotate(-6deg) scale(0.9);
+  transition: opacity .35s var(--ease), transform .45s var(--spring);
+}
+.seq__words .word:nth-child(2) { --rot: 2deg; }
+.seq__words .word.is-on { opacity: 1; transform: rotate(var(--rot, -2deg)); }
+.seq__cue {
+  position: absolute; right: var(--pad); bottom: clamp(90px, 14vh, 140px); z-index: 10;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--fg);
+}
 
 @media (max-width: 820px) {
-  .seq { height: 700vh; }
+  .seq { height: 900vh; }
+  .seq__cue { display: none; }
   .seq__cap--right { left: 0; right: auto; padding-right: var(--pad); }
   .seq__cap { max-width: none; }
   .autoplay { bottom: 14px; font-size: 14px; }
@@ -64,5 +79,6 @@
 @media (prefers-reduced-motion: reduce) {
   .shot__cam { transform: scale(1.04) !important; }
   .shot { filter: none !important; }
+  .seq__words .word { opacity: 1; transform: none; transition: none; }
   .autoplay { transition: none; }
 }
