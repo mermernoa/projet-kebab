@@ -6,7 +6,7 @@ les engagements, les infos pratiques.
 
 - `BRIEF.md` — le brief validé (offre, charte, hero, plan visuel)
 - `COPY.md` — tous les textes validés
-- `site/` — le site (HTML/CSS/JS vanilla) : `index.html` = visite par stations, `visite.html` = visite en plan-séquence (caméra continue au scroll + bouton « Lancer la visite », `sequence.js` / `sequence.css`). Lancer : `cd site && python3 -m http.server 4188` puis http://localhost:4188 (jamais en `file://`)
+- `site/` — le site (HTML/CSS/JS vanilla) : `index.html` = visite par stations, `visite.html` = visite en plan-séquence (caméra continue au scroll, `sequence.js` / `sequence.css`). Lancer : `cd site && python3 -m http.server 4188` puis http://localhost:4188 (jamais en `file://`)
 - `sources/` — visuels d'origine
 
 État : hero en **plan B** (zoom sur la façade d'origine) et photos de stations provisoires (recadrages des rendus),

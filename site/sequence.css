@@ -38,20 +38,6 @@
 .seq__cap--multi .station__meta { border-color: var(--yellow); }
 .seq__cap .btn { margin-top: 26px; }
 
-/* ---- Bouton « Lancer la visite » ---- */
-.autoplay {
-  position: fixed; left: 50%; bottom: 22px; z-index: 160; transform: translate(-50%, 0);
-  display: inline-flex; align-items: center; gap: 10px; cursor: pointer;
-  padding: 11px 20px 11px 14px; border-radius: 999px;
-  background: var(--cream); color: var(--black); border: 2.5px solid var(--black); box-shadow: 3px 3px 0 var(--black);
-  font-size: 15px; font-weight: 700;
-  transition: opacity .4s var(--ease), transform .4s var(--spring), visibility .4s;
-}
-.autoplay:hover { transform: translate(-50%, -2px) rotate(-1deg); }
-.autoplay__icon { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--black); color: var(--cream); font-size: 12px; }
-.autoplay.is-hidden { opacity: 0; visibility: hidden; transform: translate(-50%, 20px); }
-.autoplay[aria-pressed="true"] { background: var(--black); color: var(--cream); box-shadow: 3px 3px 0 var(--yellow); }
-.autoplay[aria-pressed="true"] .autoplay__icon { background: var(--yellow); color: var(--black); }
 /* L'arrivée : les 4 phrases sur la devanture (mêmes styles que les beats du hero) */
 .seq__cap--beat { max-width: 860px; }
 .seq__words { display: flex; flex-wrap: wrap; gap: 0.18em 0.28em; text-shadow: none; }
@@ -64,7 +50,7 @@
 .seq__words .word:nth-child(2) { --rot: 2deg; }
 .seq__words .word.is-on { opacity: 1; transform: rotate(var(--rot, -2deg)); }
 .seq__cue {
-  position: absolute; right: var(--pad); bottom: clamp(90px, 14vh, 140px); z-index: 10;
+  position: absolute; right: var(--pad); bottom: clamp(48px, 10vh, 96px); z-index: 10;
   display: flex; flex-direction: column; align-items: center; gap: 14px;
   font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--fg);
 }
@@ -74,11 +60,9 @@
   .seq__cue { display: none; }
   .seq__cap--right { left: 0; right: auto; padding-right: var(--pad); }
   .seq__cap { max-width: none; }
-  .autoplay { bottom: 14px; font-size: 14px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .shot__cam { transform: scale(1.04) !important; }
   .shot { filter: none !important; }
   .seq__words .word { opacity: 1; transform: none; transition: none; }
-  .autoplay { transition: none; }
 }

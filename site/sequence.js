@@ -1,8 +1,8 @@
 /* ============================================================
-   LA VISITE — plan-séquence au scroll + visite automatique
+   LA VISITE — plan-séquence au scroll
    Une caméra virtuelle se déplace dans chaque photo (x, y = point visé en %
    de l'image, s = zoom), puis « plonge » dans un point de l'image pour
-   ressortir dans la suivante. Aucun effet sur le moteur du hero (script.js).
+   ressortir dans la suivante.
    ============================================================ */
 (function () {
   "use strict";
@@ -151,57 +151,4 @@
   window.addEventListener("resize", onScroll);
   render();
 
-  /* ---------- Visite automatique ---------- */
-  var btn = document.getElementById("autoplay");
-  if (!btn) return;
-  var label = btn.querySelector(".autoplay__label");
-  var icon = btn.querySelector(".autoplay__icon");
-  var playing = false, last = 0, pos = 0, raf = 0;
-  var DURATION = 58; // secondes pour aller du haut de la page à la fin de la visite
-
-  function endY() { return seq.offsetTop + seq.offsetHeight - window.innerHeight; }
-  function setUI() {
-    btn.setAttribute("aria-pressed", String(playing));
-    label.textContent = playing ? "Pause" : (window.scrollY >= endY() - 4 ? "Revoir la visite" : "Lancer la visite");
-    icon.textContent = playing ? "❚❚" : "▶";
-  }
-  function step(ts) {
-    if (!playing) return;
-    var dt = last ? Math.min(0.05, (ts - last) / 1000) : 0;
-    last = ts;
-    var target = endY();
-    pos += (target / DURATION) * dt;
-    if (pos >= target) { pos = target; window.scrollTo(0, pos); stop(); return; }
-    window.scrollTo(0, pos);
-    raf = window.requestAnimationFrame(step);
-  }
-  function start() {
-    document.documentElement.style.scrollBehavior = "auto";
-    if (window.scrollY >= endY() - 4) window.scrollTo(0, 0);
-    pos = window.scrollY; last = 0; playing = true; setUI();
-    raf = window.requestAnimationFrame(step);
-  }
-  function stop() {
-    playing = false; window.cancelAnimationFrame(raf);
-    document.documentElement.style.scrollBehavior = "";
-    setUI();
-  }
-  btn.addEventListener("click", function () { playing ? stop() : start(); });
-  ["wheel", "touchstart", "keydown", "mousedown"].forEach(function (ev) {
-    window.addEventListener(ev, function (e) {
-      if (!playing) return;
-      if (e.type === "mousedown" && btn.contains(e.target)) return;
-      if (e.type === "keydown" && (e.target === btn)) return;
-      stop();
-    }, { passive: true });
-  });
-
-  // le bouton n'apparaît que pendant le hero et la visite
-  function toggleBtn() {
-    var visible = window.scrollY < endY() + window.innerHeight * 0.3;
-    btn.classList.toggle("is-hidden", !visible && !playing);
-    if (!playing) setUI();
-  }
-  window.addEventListener("scroll", toggleBtn, { passive: true });
-  toggleBtn();
 })();
