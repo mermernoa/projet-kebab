@@ -1,0 +1,68 @@
+/* ============================================================
+   LA VISITE — plan-séquence (visite.html uniquement)
+   ============================================================ */
+.seq { position: relative; height: 1000vh; background: var(--ink); }
+.seq__stage { position: sticky; top: 0; height: 100vh; overflow: hidden; background: var(--ink); }
+
+.shot { position: absolute; inset: 0; overflow: hidden; opacity: 0; visibility: hidden; will-change: opacity, filter; }
+.shot.is-live { visibility: visible; }
+/* cadre 16:9 qui couvre l'écran : les coordonnées de caméra (et les points cliquables) sont en % de l'image */
+.shot__frame { position: absolute; top: 50%; left: 50%; width: max(100vw, 177.78vh); aspect-ratio: 16 / 9; transform: translate(-50%, -50%); }
+.shot__cam { position: absolute; inset: 0; transform-origin: 50% 50%; will-change: transform; }
+.shot__cam > img { width: 100%; height: 100%; object-fit: cover; }
+.shot .hotspots { pointer-events: none; }
+.shot.is-interactive .hotspots { pointer-events: auto; }
+.shot:not(.is-interactive) .hotspot__dot { opacity: 0; transition: opacity .3s; }
+.shot.is-interactive .hotspot__dot { opacity: 1; transition: opacity .3s; }
+
+.seq__scrim {
+  position: absolute; inset: 0; pointer-events: none; z-index: 6;
+  background:
+    linear-gradient(to top, rgba(10,10,10,0.88) 0%, rgba(10,10,10,0.35) 32%, rgba(10,10,10,0) 58%),
+    linear-gradient(to bottom, rgba(10,10,10,0.45) 0%, rgba(10,10,10,0) 20%);
+}
+/* vignette « vitesse » : s'assombrit pendant les plongées d'une image à l'autre */
+.seq__vignette {
+  position: absolute; inset: 0; pointer-events: none; z-index: 7; opacity: var(--speed, 0);
+  background: radial-gradient(ellipse at center, rgba(10,10,10,0) 35%, rgba(10,10,10,0.85) 100%);
+}
+
+.seq__cap {
+  position: absolute; z-index: 10; left: 0; bottom: 0; max-width: 680px;
+  padding: 0 var(--pad) clamp(56px, 10vh, 110px);
+  opacity: 0; pointer-events: none; will-change: opacity, transform;
+}
+.seq__cap--right { left: auto; right: 0; padding-right: calc(var(--pad) + 70px); max-width: 640px; }
+.seq__cap--right .station__title { font-size: clamp(38px, 4.6vw, 70px); }
+.seq__cap--multi .station__title em { color: var(--fg); text-decoration: underline; text-decoration-color: var(--yellow); text-decoration-thickness: 0.08em; text-underline-offset: 0.12em; }
+.seq__cap--multi .station__meta { border-color: var(--yellow); }
+.seq__cap .btn { margin-top: 26px; }
+
+/* ---- Bouton « Lancer la visite » ---- */
+.autoplay {
+  position: fixed; left: 50%; bottom: 22px; z-index: 160; transform: translate(-50%, 0);
+  display: inline-flex; align-items: center; gap: 10px; cursor: pointer;
+  padding: 11px 20px 11px 14px; border-radius: 999px;
+  background: var(--cream); color: var(--black); border: 2.5px solid var(--black); box-shadow: 3px 3px 0 var(--black);
+  font-size: 15px; font-weight: 700;
+  transition: opacity .4s var(--ease), transform .4s var(--spring), visibility .4s;
+}
+.autoplay:hover { transform: translate(-50%, -2px) rotate(-1deg); }
+.autoplay__icon { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--black); color: var(--cream); font-size: 12px; }
+.autoplay.is-hidden { opacity: 0; visibility: hidden; transform: translate(-50%, 20px); }
+.autoplay[aria-pressed="true"] { background: var(--black); color: var(--cream); box-shadow: 3px 3px 0 var(--yellow); }
+.autoplay[aria-pressed="true"] .autoplay__icon { background: var(--yellow); color: var(--black); }
+/* le repère « scrolle pour entrer » du hero laisse la place au bouton */
+.scrub__cue { bottom: clamp(90px, 14vh, 140px); }
+
+@media (max-width: 820px) {
+  .seq { height: 700vh; }
+  .seq__cap--right { left: 0; right: auto; padding-right: var(--pad); }
+  .seq__cap { max-width: none; }
+  .autoplay { bottom: 14px; font-size: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shot__cam { transform: scale(1.04) !important; }
+  .shot { filter: none !important; }
+  .autoplay { transition: none; }
+}
